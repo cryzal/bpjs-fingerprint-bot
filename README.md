@@ -10,6 +10,8 @@ untuk membuat exe
 go build -o FingerprintBot.exe main.go
 ```
 
+letakkan file exe ini di folder instalasi. sejajar dengan file 'After.exe'
+
 ## Dokumentasi Rest API
 
 Ping
