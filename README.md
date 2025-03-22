@@ -28,7 +28,8 @@ curl --location 'http://localhost:3005/open' \
 --data-raw '{
 "username": "agung,arief",
 "password": "Agung123#",
-"no_bpjs": "0003498723872394"
+"no_bpjs": "0003498723872394",
+"app_login_time": 1500 // default 1000. format milisecond
 }'
 ```
 

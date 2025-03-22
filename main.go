@@ -8,8 +8,6 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/go-ole/go-ole"
-	"github.com/go-ole/go-ole/oleutil"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/lxn/win"
@@ -20,6 +18,7 @@ import (
 const (
 	port            = ":3005"
 	LoginWindowName = "Aplikasi Verifikasi dan Registrasi Sidik Jari"
+	DefaultAppLoginTime = 1000
 )
 
 // Mapping karakter ke konstanta virtual keycode
@@ -83,6 +82,10 @@ func main() {
 			return c.Status(422).JSON(fiber.Map{"message": "Bad Request"})
 		}
 
+		if request.AppLoginTime==0{
+			request.AppLoginTime = DefaultAppLoginTime
+		}
+
 		filePath := getExePath("After.exe")
 		cmd := exec.Command(filePath)
 		err := cmd.Start()
@@ -127,64 +130,7 @@ func main() {
 	}
 }
 
-// Fungsi untuk cek keberadaan elemen UI
-func checkForRadioButton(label string, timeout time.Duration) bool {
-	start := time.Now()
 
-	for time.Since(start) < timeout {
-		// Cek apakah elemen radio button ada di UI
-		if isRadioButtonPresent(label) {
-			fmt.Println("Elemen ditemukan:", label)
-			return true
-		}
-
-		time.Sleep(500 * time.Millisecond) // Tunggu sebelum cek lagi
-	}
-
-	fmt.Println("Elemen tidak ditemukan dalam batas waktu")
-	return false
-}
-
-// Fungsi untuk mengecek radio button di UI Windows (Menggunakan UI Automation)
-func isRadioButtonPresent(label string) bool {
-	ole.CoInitialize(0)
-	defer ole.CoUninitialize()
-
-	unknown, err := oleutil.CreateObject("WScript.Shell")
-	if err != nil {
-		fmt.Println("Gagal membuat WScript.Shell:", err)
-		return false
-	}
-	shell, err := unknown.QueryInterface(ole.IID_IDispatch)
-	if err != nil {
-		fmt.Println("Gagal mendapatkan IDispatch:", err)
-		return false
-	}
-
-	// Perintah untuk mengecek keberadaan elemen UI
-	_, err = oleutil.CallMethod(shell, "SendKeys", "^f") // Simulasi CTRL+F (Cari Elemen)
-	if err != nil {
-		fmt.Println("Gagal mengirim CTRL+F:", err)
-		return false
-	}
-
-	time.Sleep(1 * time.Second) // Tunggu pencarian
-
-	// Simpan hasil pencarian ke clipboard dan baca isinya
-	_, err = oleutil.CallMethod(shell, "SendKeys", "^c")
-	if err != nil {
-		fmt.Println("Gagal meng-copy teks UI:", err)
-		return false
-	}
-
-	// Baca clipboard untuk melihat apakah ada teks "No. Kartu BPJS Kesehatan"
-	clipboardText, _ := exec.Command("powershell", "-command", "Get-Clipboard").Output()
-	if string(clipboardText) == label {
-		return true
-	}
-
-	return false
-}
 
 // Mendapatkan path file exe
 func getExePath(app string) string {
