@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	port            = ":3005"
-	LoginWindowName = "Aplikasi Verifikasi dan Registrasi Sidik Jari"
-	DefaultAppLoginTime = 1000
+	port                = ":3005"
+	LoginWindowName     = "Aplikasi Verifikasi dan Registrasi Sidik Jari"
+	DefaultAppLoginTime = 2000
 )
 
 // Mapping karakter ke konstanta virtual keycode
@@ -69,7 +69,7 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS",
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowHeaders: "*",
 	}))
 
 	app.Post("/ping", func(c *fiber.Ctx) error {
@@ -82,7 +82,7 @@ func main() {
 			return c.Status(422).JSON(fiber.Map{"message": "Bad Request"})
 		}
 
-		if request.AppLoginTime==0{
+		if request.AppLoginTime == 0 {
 			request.AppLoginTime = DefaultAppLoginTime
 		}
 
@@ -97,6 +97,8 @@ func main() {
 		if err := waitForWindow(LoginWindowName, 10*time.Second); err != nil {
 			return c.Status(500).JSON(fiber.Map{"message": "Aplikasi tidak terbuka dalam batas waktu"})
 		}
+
+		time.Sleep(500 * time.Millisecond)
 
 		// Mengetik Username, lalu tekan TAB
 		typeStr(request.Username)
@@ -117,7 +119,7 @@ func main() {
 	})
 
 	app.Post("/close", func(c *fiber.Ctx) error {
-	
+
 		filePath := getExePath("After.exe")
 		cmd := exec.Command("TASKKILL", "/IM", filepath.Base(filePath), "/F")
 		cmd.Run()
@@ -129,8 +131,6 @@ func main() {
 		fmt.Println("Error starting the server:", err)
 	}
 }
-
-
 
 // Mendapatkan path file exe
 func getExePath(app string) string {
